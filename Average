@@ -1,0 +1,51 @@
+#include <iostream>
+
+class Average 
+{
+private:
+    int32_t m_sum = 0;
+    int8_t m_cout = 0;
+public:
+    Average() {}
+
+    Average& operator+=(int32_t number) 
+    {
+        m_sum += number;
+        m_cout++;
+        return *this;
+    }
+
+    friend std::ostream& operator<<(std::ostream& out, const Average& m);
+
+};
+
+std::ostream& operator<<(std::ostream& out, const Average& m) 
+{
+    out << m.m_sum << "/" << m.m_cout << "=" << m.m_sum / m.m_cout;
+    return out;
+}
+
+int main()
+{
+    Average avg;
+
+    avg += 5;
+    std::cout << avg << '\n'; // 5 / 1 = 5
+
+    avg += 9;
+    std::cout << avg << '\n'; // (5 + 9) / 2 = 7
+
+    avg += 19;
+    std::cout << avg << '\n'; // (5 + 9 + 19) / 3 = 11
+
+    avg += -9;
+    std::cout << avg << '\n'; // (5 + 9 + 19 - 9) / 4 = 6
+
+    (avg += 7) += 11; // выполнение цепочки операций
+    std::cout << avg << '\n'; // (5 + 9 + 19 - 9 + 7 + 11) / 6 = 7
+
+    Average copy = avg;
+    std::cout << copy << '\n';
+
+    return 0;
+}
