@@ -1,0 +1,98 @@
+#include <iostream>
+#include <cassert>
+
+class IntArray 
+{
+private:
+	int *m_array = nullptr;
+	int m_length;
+
+public:
+	IntArray(int length)
+	{
+		assert(length > 0 && "IntArray length should be a positive integer");
+		m_length = length;
+		m_array = new int[length] ();
+	}
+
+	// Конструктор копирования, который выполняет глубокое копирование
+	IntArray(const IntArray& array) :m_length(array.m_length)
+	{
+		m_array = new int[array.m_length]();
+		//глубокое копирование
+		for (int i = 0; i < array.m_length; i++) 
+			m_array[i] = array.m_array[i];
+	}
+
+	// Перегрузка оператора присваивания с выполнением глубокого копирования
+	IntArray& operator= (const IntArray& array)
+	{
+		// Проверка на самоприсваивание
+		if (this == &array) { return *this; }
+
+		// Если массив уже существует, то удаляем его, дабы не произошла утечка памяти
+		delete[] m_array;
+
+		// Выделяем новый массив
+		m_array = new int[array.m_length]();
+		m_length = array.m_length;
+
+		// Копируем элементы из исходного массива в наш, только что выделенный, массив
+		for (int i = 0; i < array.m_length; i++)
+			m_array[i] = array.m_array[i];
+		return *this;
+	}
+
+	~IntArray() { delete[] m_array; }
+
+	// Функция перегрузки оператора []
+	int& operator[](int index) 
+	{
+		assert(index >= 0);
+		assert(index < m_length);
+		return m_array[index];
+	}
+
+	friend IntArray fillArray();
+	friend  std::ostream& operator<<(std::ostream & out, const IntArray & array);
+
+};
+
+// Функция перегрузки оператора <<
+std::ostream& operator<<(std::ostream& out, const IntArray& array) 
+{
+	for (int i = 0; i < array.m_length; i++) 
+	{
+		out << array.m_array[i] << " ";
+	}
+	return out;
+}
+
+
+IntArray fillArray()
+{
+	IntArray a(6);
+	a[0] = 6;
+	a[1] = 7;
+	a[2] = 3;
+	a[3] = 4;
+	a[4] = 5;
+	a[5] = 8;
+
+	return a;
+}
+
+int main()
+{
+	IntArray a = fillArray();
+	std::cout << a << '\n';
+
+	IntArray b(1);
+	a = a;
+	b = a;
+
+	std::cout << b << '\n';
+
+	return 0;
+}
+
