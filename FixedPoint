@@ -1,0 +1,137 @@
+#include <iostream>
+#include <cstdint> // для целочисленных значений фиксированного размера
+#include <cmath>
+
+
+
+class FixedPoint
+{
+private:
+	std::int16_t m_base; // это целая часть значения
+	std::int8_t m_decimal; // это дробная часть значения
+
+public:
+	FixedPoint(std::int16_t base = 0, std::int8_t decimal = 0)
+		: m_base(base), m_decimal(decimal)
+	{
+		// Здесь нам нужно обработать случай, когда дробная часть > 99 или < -99,
+		while (m_decimal > 99 || m_decimal < -99) 
+		{
+			m_decimal /= 10;
+		}
+
+		// Если целая или дробная части отрицательные
+		if (m_base < 0.0 || m_decimal < 0.0)
+		{
+			// Проверяем целую часть
+			if (m_base > 0.0)
+				m_base = -m_base;
+			// Проверяем дробную часть
+			if (m_decimal > 0.0)
+				m_decimal = -m_decimal;
+		}
+	}
+
+	FixedPoint(double x)
+	{
+		m_base= static_cast<std::int16_t>(x) ;
+		m_decimal= static_cast<std::int8_t>(round((x-m_base) * 100));
+	}
+
+	operator double() const
+	{
+		return m_base + static_cast<double>(m_decimal)/100;
+	}
+
+	bool operator==(const FixedPoint& x) 
+	{
+		return (m_base == x.m_base) && (m_decimal == x.m_decimal);
+	}
+
+	friend std::istream& operator>>(std::istream& in, FixedPoint& a) 
+	{
+		double x;
+		in >> x;
+		a = FixedPoint(x);
+		return in;
+	}
+
+	FixedPoint operator-() 
+	{
+		return FixedPoint(-m_base, -m_decimal);
+	}
+
+	FixedPoint operator+(const FixedPoint& x)
+	{
+
+		return FixedPoint(static_cast<double>(*this)+static_cast<double>(x));
+	}
+
+
+	friend std::ostream& operator<<(std::ostream& out, const FixedPoint& fp)
+	{
+		out << static_cast<double>(fp);
+		return out;
+	}
+};
+
+void SomeTest()
+{
+	std::cout << std::boolalpha;
+	std::cout << (FixedPoint(0.75) + FixedPoint(1.23) == FixedPoint(1.98)) << '\n'; // оба значения положительные, никакого переполнения
+	std::cout << (FixedPoint(0.75) + FixedPoint(1.50) == FixedPoint(2.25)) << '\n'; // оба значения положительные, переполнение
+	std::cout << (FixedPoint(-0.75) + FixedPoint(-1.23) == FixedPoint(-1.98)) << '\n'; // оба значения отрицательные, никакого переполнения
+	std::cout << (FixedPoint(-0.75) + FixedPoint(-1.50) == FixedPoint(-2.25)) << '\n'; // оба значения отрицательные, переполнение
+	std::cout << (FixedPoint(0.75) + FixedPoint(-1.23) == FixedPoint(-0.48)) << '\n'; // второе значение отрицательное, никакого переполнения
+	std::cout << (FixedPoint(0.75) + FixedPoint(-1.50) == FixedPoint(-0.75)) << '\n'; // второе значение отрицательное, возможно переполнение
+	std::cout << (FixedPoint(-0.75) + FixedPoint(1.23) == FixedPoint(0.48)) << '\n'; // первое отрицательное, никакого переполнения
+	std::cout << (FixedPoint(-0.75) + FixedPoint(1.50) == FixedPoint(0.75)) << '\n'; // первое отрицательное, возможно переполнение
+}
+
+int main()
+{
+	FixedPoint a(37, 58);
+	std::cout << a << '\n';
+
+	FixedPoint b(-3, 9);
+	std::cout << b << '\n';
+
+	FixedPoint c(4, -7);
+	std::cout << c << '\n';
+
+	FixedPoint d(-5, -7);
+	std::cout << d << '\n';
+
+	FixedPoint e(0, -3);
+	std::cout << e << '\n';
+
+	std::cout << static_cast<double>(e) << '\n';
+
+
+	FixedPoint f(0.03);
+	std::cout << f << '\n';
+
+	FixedPoint g(-0.03);
+	std::cout << g << '\n';
+
+	FixedPoint i(4.01); // сохранится как 4.0099999..., поэтому нам нужно это всё округлить
+	std::cout << i << '\n';
+
+	FixedPoint s(-4.01); // сохранится как -4.0099999..., поэтому нам нужно это всё округлить
+	std::cout << s << '\n';
+
+
+	SomeTest();
+
+	FixedPoint q(-0.48);
+	std::cout << q << '\n';
+
+	std::cout << -q << '\n';
+
+	std::cout << "Enter a number: "; // введите 5.678
+	std::cin >> q;
+
+	std::cout << "You entered: " << q << '\n';
+
+	return 0;
+}
